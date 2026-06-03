@@ -1,0 +1,5 @@
+digraph "CFG for 'max' function" {
+	label="CFG for 'max' function";
+
+	Node0x6114be568a50 [shape=record,color="#b70d28ff", style=filled, fillcolor="#b70d2870" fontname="Courier",label="{2:\l|  %3 = tail call i32 @llvm.smax.i32(i32 %0, i32 %1)\l  ret i32 %3\l}"];
+}
