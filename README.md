@@ -28,6 +28,8 @@ clang --version
 opt --version
 dot -V
 ```
+![Описание изображения](files/6.png)
+
 Рисунок 1 — Проверка установленных инструментов: Clang, LLVM/opt и Graphviz.
 ## Исходный код
 Файл ternary.c:
@@ -51,7 +53,10 @@ int main() {
 clang -Xclang -ast-dump -fsyntax-only source/ternary.c > ast/ternary_ast.txt
 grep -A 15 -B 5 "ConditionalOperator" ast/ternary_ast.txt
 ```
+![Описание изображения](files/1.png)
+
 Рисунок 2 - Фрагмент AST тернарного оператора: узел ConditionalOperator
+
 В AST тернарный оператор представлен узлом ConditionalOperator. Условие (a > b) представлено как BinaryOperator '>', а ветви результата — как обращения к параметрам a и b
 ## Генерация LLVM IR без оптимизаций
 Команды:
@@ -59,15 +64,19 @@ grep -A 15 -B 5 "ConditionalOperator" ast/ternary_ast.txt
 clang -O0 -S -emit-llvm source/ternary.c -o ir/ternary_O0.ll
 sed -n '/define.*@max/,/^}/p' ir/ternary_O0.ll
 ```
+![Описание изображения](files/3.png)
+
 Рисунок 3 — LLVM IR тернарного оператора без оптимизаций (-O0)
 
 В IR без оптимизаций тернарный оператор представлен через условное ветвление. Сначала выполняется сравнение icmp sgt, затем инструкция br передаёт управление в одну из двух ветвей. После этого результат объединяется с помощью phi-узла.
 ## Генерация LLVM IR после оптимизации -O2
-Команлы:
+Команды:
 ```
 clang -O2 -S -emit-llvm source/ternary.c -o ir/ternary_O2.ll
 sed -n '/define.*@max/,/^}/p' ir/ternary_O2.ll
 ```
+![Описание изображения](files/4.png)
+
 Рисунок 4 — LLVM IR тернарного оператора после оптимизации -O2.
 
 После оптимизации -O2 LLVM распознал выражение (a > b) ? a : b как вычисление максимума двух знаковых целых чисел и заменил ветвление на intrinsic llvm.smax.i32.
@@ -77,6 +86,8 @@ sed -n '/define.*@max/,/^}/p' ir/ternary_O2.ll
 clang -O2 -S source/ternary.c -o asm/ternary.s
 grep -i "cmov" asm/ternary.s
 ```
+![Описание изображения](files/assem.png)
+
 Рисунок 5 — Проверка наличия инструкции cmovgl в ассемблерном коде.
 
 В ассемблерном коде была получена инструкция cmovgl. Это означает, что простой выбор значения по условию был реализован через условное перемещение, а не через обычный условный переход.
@@ -90,9 +101,15 @@ opt -passes=dot-cfg -disable-output ir/ternary_O2.ll
 dot -Tpng "$file" -o "${file%.dot}_O2.png"
 ```
 CFG без оптимизаций:
+
+![Описание изображения](cfg/max.png)
+
 Рисунок 6 — CFG функции max без оптимизаций (-O0)
 
 CFG после -O2:
+
+![Описание изображения](cfg/max_O2.png)
+
 Рисунок 7 — CFG функции max после оптимизации -O2
 
 При -O0 CFG содержит блок условия, две ветви и общий блок с phi-узлом. После -O2 CFG упрощается до одного базового блока с вызовом llvm.smax.i32.
@@ -120,6 +137,8 @@ int main() {
 clang -Xclang -ast-dump -fsyntax-only source/ifelse.c > ast/ifelse_ast.txt
 grep -A 15 -B 5 "IfStmt" ast/ifelse_ast.txt
 ```
+![Описание изображения](files/2.png)
+
 Рисунок 8 — Фрагмент AST конструкции if-else: узел IfStmt.
 
 В AST конструкция if-else представлена узлом IfStmt с признаком has_else. В отличие от неё, тернарный оператор представлен узлом ConditionalOperator.
